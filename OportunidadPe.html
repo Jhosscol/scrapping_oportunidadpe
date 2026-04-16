@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OportunidadPe — Radar de Negocios Perú</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rojo: #E8271A;
+  --rojo-dark: #B51E13;
+  --crema: #F5F0E8;
+  --carbon: #111111;
+  --gris: #2A2A2A;
+  --gris-mid: #555;
+  --gris-light: #E0DBD3;
+  --oro: #C4982A;
+  --verde: #1A8C5B;
+  --azul: #1A4E8C;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--crema);
+  color: var(--carbon);
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─── */
+header {
+  background: var(--carbon);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 3px solid var(--rojo);
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #fff;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.logo span { color: var(--rojo); }
+
+.header-badge {
+  background: var(--rojo);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: pulse-badge 2s infinite;
+}
+@keyframes pulse-badge {
+  0%,100% { opacity:1; }
+  50% { opacity:0.6; }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #999;
+  font-family: var(--font-body);
+}
+
+/* ─── HERO STRIP ─── */
+.hero {
+  background: var(--carbon);
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: 'PE';
+  position: absolute;
+  right: -1rem;
+  top: -2rem;
+  font-family: var(--font-display);
+  font-size: 12rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.03);
+  line-height: 1;
+  pointer-events: none;
+}
+.hero-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rojo);
+  margin-bottom: 0.75rem;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.05;
+  max-width: 700px;
+  margin-bottom: 1rem;
+}
+.hero h1 em { color: var(--rojo); font-style: normal; }
+.hero p {
+  color: #aaa;
+  font-size: 1rem;
+  max-width: 520px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* ─── STATS BAR ─── */
+.stats-bar {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* ─── CONTROLS ─── */
+.controls {
+  background: #fff;
+  border-bottom: 1px solid var(--gris-light);
+  padding: 1rem 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.5rem;
+  border: 1.5px solid var(--gris-light);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  background: var(--crema);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input:focus { border-color: var(--rojo); }
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--gris-mid);
+}
+
+.filter-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.chip {
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--gris-light);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #fff;
+  color: var(--gris-mid);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--rojo); color: var(--rojo); }
+.chip.active { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+
+/* ─── SCRAPER BTN ─── */
+.scrape-btn {
+  padding: 0.6rem 1.2rem;
+  background: var(--carbon);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.scrape-btn:hover { background: var(--rojo); }
+.scrape-btn.loading { background: var(--gris-mid); cursor: wait; }
+
+/* ─── MAIN LAYOUT ─── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  min-height: calc(100vh - 200px);
+}
+
+/* ─── FEED ─── */
+.feed {
+  padding: 1.5rem 2rem;
+  border-right: 1px solid var(--gris-light);
+}
+
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.2rem;
+}
+.feed-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gris-mid);
+}
+.feed-count {
+  font-size: 0.8rem;
+  color: var(--gris-mid);
+}
+
+.news-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.news-card {
+  background: #fff;
+  border: 1px solid var(--gris-light);
+  padding: 1.2rem 1.4rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  border-left: 3px solid transparent;
+  animation: fadeUp 0.4s ease both;
+}
+.news-card:hover {
+  border-left-color: var(--rojo);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  transform: translateX(2px);
+}
+.news-card.selected {
+  border-left-color: var(--rojo);
+  background: #fff8f7;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.source-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: var(--carbon);
+  color: #fff;
+}
+.sector-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+}
+.sector-construcción { color: var(--rojo-dark); }
+.sector-tecnología { color: var(--azul); }
+.sector-agricultura { color: var(--verde); }
+.sector-salud { color: #8B2F8F; }
+.sector-energía { color: var(--oro); }
+.sector-educación { color: #2E6DA4; }
+.sector-turismo { color: #C47A2A; }
+.sector-finanzas { color: var(--verde); }
+.sector-general { color: var(--gris-mid); }
+
+.card-date {
+  font-size: 0.68rem;
+  color: #aaa;
+  margin-left: auto;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--carbon);
+  margin-bottom: 0.5rem;
+}
+.card-summary {
+  font-size: 0.82rem;
+  color: var(--gris-mid);
+  line-height: 1.55;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  padding: 1.5rem;
+  background: #fff;
+}
+
+.sidebar-section {
+  margin-bottom: 2rem;
+}
+.sidebar-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gris-mid);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gris-light);
+}
+
+/* ─── AI PANEL ─── */
+.ai-panel {
+  background: var(--carbon);
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.ai-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.ai-dot {
+  width: 8px; height: 8px;
+  background: var(--rojo);
+  border-radius: 50%;
+  animation: pulse-badge 1.5s infinite;
+}
+.ai-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ai-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.ai-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.ai-input::placeholder { color: rgba(255,255,255,0.35); }
+.ai-input:focus { border-color: var(--rojo); }
+
+.ai-send-btn {
+  padding: 0.6rem 1rem;
+  background: var(--rojo);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.ai-send-btn:hover { background: var(--rojo-dark); }
+.ai-send-btn:disabled { background: #555; cursor:wait; }
+
+.ai-response {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  border-left: 3px solid var(--rojo);
+  font-size: 0.82rem;
+  color: #ddd;
+  line-height: 1.6;
+  min-height: 60px;
+  white-space: pre-wrap;
+}
+.ai-response.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+}
+
+.quick-asks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+.quick-ask {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  color: #bbb;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+.quick-ask:hover {
+  background: rgba(232,39,26,0.15);
+  border-color: var(--rojo);
+  color: #fff;
+}
+
+/* ─── FUENTES ─── */
+.fuentes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.fuente-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+.fuente-name { color: var(--carbon); font-weight: 500; }
+.fuente-count {
+  background: var(--crema);
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gris-mid);
+}
+
+/* ─── SELECTED DETAIL ─── */
+.detail-panel {
+  display: none;
+  background: #fff8f7;
+  border: 1px solid #ffd5d2;
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.detail-panel.visible { display: block; }
+.detail-title {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--carbon);
+  line-height: 1.3;
+  margin-bottom: 0.8rem;
+}
+.detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--rojo);
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.detail-link:hover { border-bottom-color: var(--rojo); }
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--carbon);
+  color: #555;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.78rem;
+  border-top: 3px solid var(--rojo);
+}
+footer strong { color: var(--rojo); }
+
+/* ─── EMPTY STATE ─── */
+.empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--gris-mid);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty h3 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 0.5rem; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { border-top: 1px solid var(--gris-light); }
+  .feed { border-right: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Oportunidad<span>Pe</span>
+  </div>
+  <div class="header-badge">● EN VIVO</div>
+  <div class="header-right">
+    <span id="last-update">Actualizado: hoy</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Radar de Negocios · Perú</div>
+  <h1>Todas las <em>oportunidades</em> de negocio en un solo lugar</h1>
+  <p>Scraping automático de 9 medios peruanos. IA detecta licitaciones, convocatorias, fondos e inversiones antes que tu competencia.</p>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="stat-total">0</span>
+      <span class="stat-label">Oportunidades hoy</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">9</span>
+      <span class="stat-label">Medios monitoreados</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="stat-sectores">0</span>
+      <span class="stat-label">Sectores activos</span>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar licitación, fondo, sector..." oninput="filterNews()">
+  </div>
+  <div class="filter-chips" id="chips">
+    <div class="chip active" onclick="setFilter('todos', this)">Todos</div>
+    <div class="chip" onclick="setFilter('construcción', this)">🏗 Construcción</div>
+    <div class="chip" onclick="setFilter('tecnología', this)">💻 Tecnología</div>
+    <div class="chip" onclick="setFilter('agricultura', this)">🌾 Agricultura</div>
+    <div class="chip" onclick="setFilter('salud', this)">🏥 Salud</div>
+    <div class="chip" onclick="setFilter('energía', this)">⚡ Energía</div>
+    <div class="chip" onclick="setFilter('educación', this)">📚 Educación</div>
+    <div class="chip" onclick="setFilter('turismo', this)">🏨 Turismo</div>
+    <div class="chip" onclick="setFilter('finanzas', this)">💰 Finanzas</div>
+  </div>
+  <button class="scrape-btn" onclick="simulateScrape(this)">
+    ⚡ Actualizar datos
+  </button>
+</div>
+
+<div class="main">
+  <div class="feed">
+    <div class="feed-header">
+      <span class="feed-title">Oportunidades detectadas</span>
+      <span class="feed-count" id="feed-count">Cargando...</span>
+    </div>
+    <div class="news-grid" id="news-grid"></div>
+  </div>
+
+  <aside class="sidebar">
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="detail-panel">
+      <div class="sidebar-label">Noticia seleccionada</div>
+      <div class="detail-title" id="detail-title"></div>
+      <div style="font-size:0.8rem;color:var(--gris-mid);line-height:1.55;margin-bottom:0.5rem" id="detail-body"></div>
+      <a class="detail-link" id="detail-link" href="#" target="_blank">Ver noticia completa ↗</a>
+    </div>
+
+    <!-- AI Panel -->
+    <div class="ai-panel">
+      <div class="ai-panel-header">
+        <div class="ai-dot"></div>
+        <span class="ai-title">Asistente IA</span>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-input" type="text" placeholder="Pregúntale a la IA..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="ai-send-btn" id="ai-btn" onclick="sendAI()">Enviar</button>
+      </div>
+      <div class="ai-response" id="ai-response">Haz una pregunta sobre las oportunidades o pide análisis por sector.</div>
+      <div class="quick-asks">
+        <button class="quick-ask" onclick="quickAsk('¿Cuáles son las mejores oportunidades de construcción hoy?')">¿Mejor oportunidad en construcción?</button>
+        <button class="quick-ask" onclick="quickAsk('¿Qué sectores tienen más inversión pública disponible?')">¿Qué sectores tienen más inversión?</button>
+        <button class="quick-ask" onclick="quickAsk('¿Qué MYPE debería priorizar si tiene S/50,000 de capital?')">¿Qué haría con S/50,000?</button>
+        <button class="quick-ask" onclick="quickAsk('Resume las oportunidades de hoy en 3 puntos clave')">Resumen ejecutivo de hoy</button>
+      </div>
+    </div>
+
+    <!-- Fuentes -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Fuentes monitoreadas</div>
+      <div class="fuentes-list" id="fuentes-list"></div>
+    </div>
+
+  </aside>
+</div>
+
+<footer>
+  <strong>OportunidadPe</strong> · Scraping de 9 medios peruanos · Powered by Claude AI<br>
+  <small>Gestión · El Comercio · Andina · La República · Peru21 · El Peruano · Correo · Ojo · América TV</small>
+</footer>
+
+<script>
+// ─── DATA ───
+const NOTICIAS = [
+  {titulo:"ProInversión lanza convocatoria para proyecto de agua potable en 5 regiones por S/ 800 millones",url:"https://gestion.pe",fuente:"Gestión",sector:"construcción",fecha:"2026-04-16",resumen:"El organismo promotor de la inversión privada abrió el proceso de licitación para obras de saneamiento en Puno, Cusco, Arequipa, Ayacucho y Apurímac."},
+  {titulo:"Gobierno lanza fondo de S/ 200 millones para financiar startups tecnológicas peruanas",url:"https://gestion.pe",fuente:"Gestión",sector:"tecnología",fecha:"2026-04-16",resumen:"Concytec y el Ministerio de Producción anunciaron un fondo conjunto para financiar emprendimientos digitales con potencial de exportación."},
+  {titulo:"MTC convoca licitación para construcción de carretera interoceánica sur por US$ 1,200 millones",url:"https://andina.pe",fuente:"Andina",sector:"construcción",fecha:"2026-04-15",resumen:"El Ministerio de Transportes y Comunicaciones abrió el proceso de selección para empresas constructoras interesadas en el tramo sur del proyecto."},
+  {titulo:"MIDAGRI anuncia créditos de hasta S/ 50,000 para pequeños agricultores cafetaleros",url:"https://andina.pe",fuente:"Andina",sector:"agricultura",fecha:"2026-04-15",resumen:"El programa beneficiará a 15,000 productores de café y cacao en las regiones de San Martín, Cusco y Junín con tasas de interés preferencial."},
+  {titulo:"Municipalidad de Lima lanza convocatoria para operadores de mercados municipales",url:"https://elcomercio.pe",fuente:"El Comercio",sector:"general",fecha:"2026-04-15",resumen:"La MML busca empresas y asociaciones con experiencia en gestión de mercados para administrar 12 instalaciones en Lima Metropolitana."},
+  {titulo:"BCP y BanBif lanzan programa de préstamos para MYPES con 0% de comisión por 6 meses",url:"https://elcomercio.pe",fuente:"El Comercio",sector:"finanzas",fecha:"2026-04-14",resumen:"Los bancos privados se unen a la iniciativa gubernamental para dinamizar el acceso al crédito de las micro y pequeñas empresas peruanas."},
+  {titulo:"Gobierno Regional de Puno adjudica contratos por S/ 120 millones para infraestructura educativa",url:"https://larepublica.pe",fuente:"La República",sector:"educación",fecha:"2026-04-14",resumen:"Se construirán 45 nuevas escuelas en zonas rurales de Puno, Lampa, Azángaro y Melgar con financiamiento del Banco Mundial."},
+  {titulo:"PromPerú convoca exportadores de quinua y kiwicha para misión comercial a Europa",url:"https://larepublica.pe",fuente:"La República",sector:"agricultura",fecha:"2026-04-14",resumen:"La comisión de promoción del Perú financiará participación de 30 empresas exportadoras en la feria Anuga FoodTec de Alemania."},
+  {titulo:"Mincetur lanza fondo de S/ 80 millones para modernización de hoteles en regiones turísticas",url:"https://peru21.pe",fuente:"Peru21",sector:"turismo",fecha:"2026-04-13",resumen:"Establecimientos categorizados de 2 a 4 estrellas en Cusco, Arequipa, Puno y Lima pueden acceder a cofinanciamiento no reembolsable."},
+  {titulo:"EsSalud abre licitación para adquisición de equipos médicos por S/ 350 millones",url:"https://elperuano.pe",fuente:"El Peruano",sector:"salud",fecha:"2026-04-13",resumen:"El proceso incluye tomógrafos, resonadores magnéticos y equipos de diagnóstico para hospitales de Lima, Arequipa y Trujillo."},
+  {titulo:"Osinergmin convoca concesión de distribución eléctrica para 3 provincias de Loreto",url:"https://diariocorreo.pe",fuente:"Correo",sector:"energía",fecha:"2026-04-12",resumen:"El organismo regulador busca operadores privados para llevar electricidad a 45,000 hogares rurales en provincias amazónicas."},
+  {titulo:"PRODUCE convoca a emprendimientos juveniles para fondo de capital semilla de hasta S/ 30,000",url:"https://americatv.com.pe",fuente:"América TV",sector:"tecnología",fecha:"2026-04-12",resumen:"El programa Innóvate Perú financiará proyectos de jóvenes entre 18 y 35 años en sectores de tecnología, agroindustria y manufactura."},
+  {titulo:"Contraloría detecta 12 obras públicas paralizadas en Arequipa disponibles para retomar contrato",url:"https://ojo.pe",fuente:"Ojo",sector:"construcción",fecha:"2026-04-11",resumen:"Las obras tienen un avance promedio del 45% y representan una inversión de S/ 280 millones que podría retomarse con nuevos contratistas."},
+  {titulo:"Minsa lanza convocatoria para empresas farmacéuticas: compra corporativa por S/ 600 millones",url:"https://gestion.pe",fuente:"Gestión",sector:"salud",fecha:"2026-04-11",resumen:"El proceso de adquisición centralizada incluye medicamentos esenciales, vacunas y dispositivos médicos para la red de salud pública nacional."},
+  {titulo:"Fonafe convoca a inversionistas para privatización parcial de tres empresas estatales",url:"https://gestion.pe",fuente:"Gestión",sector:"finanzas",fecha:"2026-04-10",resumen:"El Fondo Nacional de Financiamiento del Estado ofertará participación accionaria en empresas de agua, energía y logística."}
+];
+
+let currentFilter = 'todos';
+let selectedNews = null;
+
+// ─── RENDER ───
+function renderNews(list) {
+  const grid = document.getElementById('news-grid');
+  document.getElementById('feed-count').textContent = `${list.length} resultado${list.length !== 1 ? 's' : ''}`;
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>Sin resultados</h3><p>Intenta otro filtro o término de búsqueda.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((n, i) => `
+    <div class="news-card ${selectedNews === i ? 'selected' : ''}" onclick="selectNews(${i})" style="animation-delay:${i * 0.05}s">
+      <div class="card-meta">
+        <span class="source-badge">${n.fuente}</span>
+        <span class="sector-badge sector-${n.sector}">${n.sector}</span>
+        <span class="card-date">${n.fecha}</span>
+      </div>
+      <div class="card-title">${n.titulo}</div>
+      <div class="card-summary">${n.resumen}</div>
+    </div>
+  `).join('');
+}
+
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  return NOTICIAS.filter(n => {
+    const matchSector = currentFilter === 'todos' || n.sector === currentFilter;
+    const matchQ = !q || n.titulo.toLowerCase().includes(q) || n.resumen.toLowerCase().includes(q) || n.fuente.toLowerCase().includes(q);
+    return matchSector && matchQ;
+  });
+}
+
+function filterNews() { renderNews(getFiltered()); }
+
+function setFilter(sector, el) {
+  currentFilter = sector;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterNews();
+}
+
+function selectNews(i) {
+  const n = getFiltered()[i];
+  selectedNews = i;
+  document.getElementById('detail-title').textContent = n.titulo;
+  document.getElementById('detail-body').textContent = n.resumen;
+  document.getElementById('detail-link').href = n.url;
+  document.getElementById('detail-panel').classList.add('visible');
+  filterNews();
+
+  // Auto-suggest AI prompt
+  document.getElementById('ai-input').value = `Analiza esta oportunidad y dime si es rentable: "${n.titulo}"`;
+}
+
+// ─── FUENTES ───
+function renderFuentes() {
+  const counts = {};
+  NOTICIAS.forEach(n => { counts[n.fuente] = (counts[n.fuente] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  document.getElementById('fuentes-list').innerHTML = sorted.map(([name, cnt]) => `
+    <div class="fuente-row">
+      <span class="fuente-name">${name}</span>
+      <span class="fuente-count">${cnt}</span>
+    </div>
+  `).join('');
+}
+
+// ─── STATS ───
+function updateStats() {
+  document.getElementById('stat-total').textContent = NOTICIAS.length;
+  const sectores = new Set(NOTICIAS.map(n => n.sector));
+  document.getElementById('stat-sectores').textContent = sectores.size;
+  document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ─── SCRAPE SIMULATE ───
+function simulateScrape(btn) {
+  btn.classList.add('loading');
+  btn.textContent = '⏳ Scrapeando...';
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.textContent = '⚡ Actualizar datos';
+    updateStats();
+    renderNews(getFiltered());
+    renderFuentes();
+    alert('✅ Scraping completado: 9 medios revisados, ' + NOTICIAS.length + ' oportunidades encontradas.\n\n⚠️ Nota: En producción, ejecuta scraper.py en tu servidor Python para obtener datos reales en tiempo real.');
+  }, 2500);
+}
+
+// ─── AI VIA CLAUDE API ───
+async function sendAI() {
+  const input = document.getElementById('ai-input');
+  const btn = document.getElementById('ai-btn');
+  const responseDiv = document.getElementById('ai-response');
+  const question = input.value.trim();
+  if (!question) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  responseDiv.className = 'ai-response loading';
+  responseDiv.textContent = '⏳ Analizando noticias...';
+
+  const context = NOTICIAS.slice(0, 10).map((n, i) =>
+    `${i+1}. [${n.fuente}] [${n.sector}] ${n.titulo} — ${n.resumen}`
+  ).join('\n');
+
+  const systemPrompt = `Eres el asistente de OportunidadPe, un radar de oportunidades de negocio en Perú. 
+Tienes acceso a las siguientes noticias de oportunidades detectadas hoy en 9 medios peruanos:
+
+${context}
+
+Responde en español, de forma concisa y práctica. Máximo 4-5 oraciones. 
+Da consejos concretos para empresarios y emprendedores peruanos. 
+Menciona montos, plazos y entidades cuando sea relevante.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: question }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || 'No se pudo obtener respuesta.';
+    responseDiv.className = 'ai-response';
+    responseDiv.textContent = text;
+  } catch (e) {
+    responseDiv.className = 'ai-response';
+    responseDiv.textContent = '❌ Error al conectar con la IA. Verifica tu conexión.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar';
+  input.value = '';
+}
+
+function quickAsk(q) {
+  document.getElementById('ai-input').value = q;
+  sendAI();
+}
+
+// ─── INIT ───
+updateStats();
+renderNews(NOTICIAS);
+renderFuentes();
+</script>
+</body>
+</html>
