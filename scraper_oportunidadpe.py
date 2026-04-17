@@ -292,7 +292,7 @@ def scrape_ojo():
     return noticias
 
 def run_all_scrapers():
-    print("🚀 Iniciando scraping de los 9 medios peruanos...")
+    print("Iniciando scraping de los 9 medios peruanos...")
     all_news = []
 
     scrapers = [
@@ -309,7 +309,7 @@ def run_all_scrapers():
 
     for scraper_fn in scrapers:
         results = scraper_fn()
-        print(f"  ✅ {scraper_fn.__name__}: {len(results)} oportunidades encontradas")
+        print(f"  [OK] {scraper_fn.__name__}: {len(results)} oportunidades encontradas")
         all_news.extend(results)
 
     # Deduplicar por título similar
@@ -321,11 +321,59 @@ def run_all_scrapers():
             seen_titles.add(key)
             unique_news.append(n)
 
-    print(f"\n📊 Total oportunidades únicas: {len(unique_news)}")
+    print(f"\nTotal oportunidades únicas: {len(unique_news)}")
     return unique_news
+
+def scrape_custom_url(url):
+    noticias = []
+    print(f"Iniciando scraping de URL personalizada: {url}")
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+        # Heurística simple: buscar enlaces dentro de la página
+        for a in soup.find_all("a", href=True):
+            title = a.get_text(strip=True)
+            link = a["href"]
+            if len(title) < 20:
+                continue
+            
+            # Normalizar URL relativa
+            if link.startswith("/"):
+                # extraer dominio base
+                from urllib.parse import urlparse
+                parsed_url = urlparse(url)
+                base_domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                link = base_domain + link
+
+            if not link.startswith("http"):
+                continue
+
+            if is_oportunidad(title):
+                noticias.append({
+                    "titulo": title,
+                    "url": link,
+                    "fuente": "Personalizada",
+                    "sector": classify_sector(title),
+                    "fecha": datetime.now().strftime("%Y-%m-%d"),
+                })
+        
+        # Deduplicar
+        seen_titles = set()
+        unique_news = []
+        for n in noticias:
+            key = n["titulo"][:50].lower()
+            if key not in seen_titles:
+                seen_titles.add(key)
+                unique_news.append(n)
+                
+        print(f"  [OK] Oportunidades encontradas: {len(unique_news)}")
+        return unique_news
+    except Exception as e:
+        print(f"[URL Personalizada] Error: {e}")
+        return []
 
 if __name__ == "__main__":
     results = run_all_scrapers()
     with open("noticias.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
-    print("💾 Guardado en noticias.json")
+    print("Guardado en noticias.json")
