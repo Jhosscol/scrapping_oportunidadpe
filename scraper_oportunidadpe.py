@@ -6,9 +6,13 @@ Medios: Gestión, El Comercio, Andina, La República, Peru21, Correo, El Peruano
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-import json
 import time
 import re
+import concurrent.futures
+from urllib.parse import urljoin
+
+# Importamos la lógica de base de datos que creamos
+from database import insert_noticias
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
@@ -48,328 +52,139 @@ def is_oportunidad(text):
     text_lower = text.lower()
     return any(kw in text_lower for kw in KEYWORDS_OPORTUNIDAD)
 
-def scrape_gestion():
+# Configuración de TODAS las fuentes en una sola lista
+SCRAPER_CONFIGS = [
+    {"url": "https://gestion.pe/ultimas-noticias/", "source": "Gestión", "article_based": True},
+    {"url": "https://gestion.pe/economia/empresas/", "source": "Gestión", "article_based": True},
+    {"url": "https://gestion.pe/economia/", "source": "Gestión", "article_based": True},
+    {"url": "https://andina.pe/agencia/seccion-Economia-2.aspx", "source": "Andina", "article_based": False},
+    {"url": "https://andina.pe/agencia/loultimo", "source": "Andina", "article_based": False},
+    {"url": "https://elcomercio.pe/economia/", "source": "El Comercio", "article_based": True},
+    {"url": "https://larepublica.pe/economia/", "source": "La República", "article_based": False},
+    {"url": "https://peru21.pe/economia/", "source": "Peru21", "article_based": False},
+    {"url": "https://elperuano.pe/", "source": "El Peruano", "article_based": False},
+    {"url": "https://diariocorreo.pe/economia/", "source": "Correo", "article_based": False},
+    {"url": "https://americatv.com.pe/noticias", "source": "América TV", "article_based": False},
+    {"url": "https://ojo.pe/economia/", "source": "Ojo", "article_based": False},
+]
+
+def generic_scrape(config):
+    """
+    Función de scraping centralizada para evitar repetir código.
+    """
     noticias = []
+    url = config['url']
+    source = config['source']
+    is_article_based = config['article_based']
+    
     try:
-        urls = [
-            "https://gestion.pe/ultimas-noticias/",
-            "https://gestion.pe/economia/empresas/",
-            "https://gestion.pe/economia/",
-        ]
-        for url in urls:
-            r = requests.get(url, headers=HEADERS, timeout=10)
-            soup = BeautifulSoup(r.text, "html.parser")
-            articles = soup.find_all("article") or soup.find_all("div", class_=re.compile(r"story|article|card|item"))
-            for art in articles[:15]:
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        if is_article_based:
+            articles = soup.find_all(["article", "div"], class_=re.compile(r"story|card|article|item|noticia"))
+            for art in articles[:20]:
                 a_tag = art.find("a", href=True)
                 h_tag = art.find(["h2", "h3", "h1"])
                 if not a_tag or not h_tag:
                     continue
                 title = h_tag.get_text(strip=True)
                 link = a_tag["href"]
-                if not link.startswith("http"):
-                    link = "https://gestion.pe" + link
+                # Normalizar link absoluto
+                link = urljoin(url, link)
+                
                 if is_oportunidad(title):
                     noticias.append({
-                        "titulo": title,
-                        "url": link,
-                        "fuente": "Gestión",
-                        "sector": classify_sector(title),
-                        "fecha": datetime.now().strftime("%Y-%m-%d"),
+                        "titulo": title, "url": link, "fuente": source,
+                        "sector": classify_sector(title), "fecha": datetime.now().strftime("%Y-%m-%d")
                     })
-            time.sleep(0.5)
-    except Exception as e:
-        print(f"[Gestión] Error: {e}")
-    return noticias
-
-def scrape_andina():
-    noticias = []
-    try:
-        urls = [
-            "https://andina.pe/agencia/seccion-Economia-2.aspx",
-            "https://andina.pe/agencia/loultimo",
-        ]
-        for url in urls:
-            r = requests.get(url, headers=HEADERS, timeout=10)
-            soup = BeautifulSoup(r.text, "html.parser")
-            links = soup.find_all("a", href=True)
-            for a in links:
+        else:
+            for a in soup.find_all("a", href=True):
                 title = a.get_text(strip=True)
                 link = a["href"]
-                if len(title) < 20:
-                    continue
-                if not link.startswith("http"):
-                    link = "https://andina.pe" + link
+                if len(title) < 20: continue
+                # Normalizar link absoluto
+                link = urljoin(url, link)
+                
+                if not link.startswith("http"): continue
+                
                 if is_oportunidad(title):
                     noticias.append({
-                        "titulo": title,
-                        "url": link,
-                        "fuente": "Andina",
-                        "sector": classify_sector(title),
-                        "fecha": datetime.now().strftime("%Y-%m-%d"),
+                        "titulo": title, "url": link, "fuente": source,
+                        "sector": classify_sector(title), "fecha": datetime.now().strftime("%Y-%m-%d")
                     })
-            time.sleep(0.5)
     except Exception as e:
-        print(f"[Andina] Error: {e}")
-    return noticias
-
-def scrape_elcomercio():
-    noticias = []
-    try:
-        url = "https://elcomercio.pe/economia/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        articles = soup.find_all(["article", "div"], class_=re.compile(r"story|card|article|item|noticia"))
-        for art in articles[:20]:
-            a_tag = art.find("a", href=True)
-            h_tag = art.find(["h2", "h3", "h1"])
-            if not a_tag or not h_tag:
-                continue
-            title = h_tag.get_text(strip=True)
-            link = a_tag["href"]
-            if not link.startswith("http"):
-                link = "https://elcomercio.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "El Comercio",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[El Comercio] Error: {e}")
-    return noticias
-
-def scrape_larepublica():
-    noticias = []
-    try:
-        url = "https://larepublica.pe/economia/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://larepublica.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "La República",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[La República] Error: {e}")
-    return noticias
-
-def scrape_peru21():
-    noticias = []
-    try:
-        url = "https://peru21.pe/economia/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://peru21.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "Peru21",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[Peru21] Error: {e}")
-    return noticias
-
-def scrape_elperuano():
-    noticias = []
-    try:
-        url = "https://elperuano.pe/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://elperuano.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "El Peruano",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[El Peruano] Error: {e}")
-    return noticias
-
-def scrape_correo():
-    noticias = []
-    try:
-        url = "https://diariocorreo.pe/economia/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://diariocorreo.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "Correo",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[Correo] Error: {e}")
-    return noticias
-
-def scrape_americatv():
-    noticias = []
-    try:
-        url = "https://americatv.com.pe/noticias"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://americatv.com.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "América TV",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[América TV] Error: {e}")
-    return noticias
-
-def scrape_ojo():
-    noticias = []
-    try:
-        url = "https://ojo.pe/economia/"
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            title = a.get_text(strip=True)
-            link = a["href"]
-            if len(title) < 20:
-                continue
-            if not link.startswith("http"):
-                link = "https://ojo.pe" + link
-            if is_oportunidad(title):
-                noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "Ojo",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
-                })
-    except Exception as e:
-        print(f"[Ojo] Error: {e}")
+        print(f"[{source}] Error extrayendo {url}: {e}")
+        
     return noticias
 
 def run_all_scrapers():
-    print("Iniciando scraping de los 9 medios peruanos...")
+    """
+    Ejecuta el scraping de todos los medios utilizando paralelismo (Threads)
+    para terminar mucho más rápido. Inserta automáticamente en la DB.
+    """
+    print("Iniciando scraping general asíncrono...")
     all_news = []
+    
+    # Usar ThreadPoolExecutor para raspar todas las URLs al mismo tiempo (conteo de threads: 5)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_config = {executor.submit(generic_scrape, conf): conf for conf in SCRAPER_CONFIGS}
+        
+        for future in concurrent.futures.as_completed(future_to_config):
+            conf = future_to_config[future]
+            try:
+                results = future.result()
+                all_news.extend(results)
+                print(f"  [OK] {conf['source']} ({conf['url']}): {len(results)} oportunidades")
+            except Exception as exc:
+                print(f"  [ERROR] {conf['source']} generó una excepción: {exc}")
 
-    scrapers = [
-        scrape_gestion,
-        scrape_andina,
-        scrape_elcomercio,
-        scrape_larepublica,
-        scrape_peru21,
-        scrape_elperuano,
-        scrape_correo,
-        scrape_americatv,
-        scrape_ojo,
-    ]
-
-    for scraper_fn in scrapers:
-        results = scraper_fn()
-        print(f"  [OK] {scraper_fn.__name__}: {len(results)} oportunidades encontradas")
-        all_news.extend(results)
-
-    # Deduplicar por título similar
-    seen_titles = set()
-    unique_news = []
-    for n in all_news:
-        key = n["titulo"][:50].lower()
-        if key not in seen_titles:
-            seen_titles.add(key)
-            unique_news.append(n)
-
-    print(f"\nTotal oportunidades únicas: {len(unique_news)}")
-    return unique_news
+    # Guardar en Base de Datos de golpe (el DB maneja deduplicación vía UNIQUE url)
+    inserciones_nuevas = insert_noticias(all_news)
+    print(f"\nFinalizado. Total analizado: {len(all_news)} | Nuevas agregadas DB: {inserciones_nuevas}")
+    return {"total_analizadas": len(all_news), "nuevas_insertadas": inserciones_nuevas, "data": all_news}
 
 def scrape_custom_url(url):
-    noticias = []
+    """
+    Toma una URL abierta, y hace un chequeo heurístico general.
+    """
     print(f"Iniciando scraping de URL personalizada: {url}")
+    noticias = []
     try:
-        r = requests.get(url, headers=HEADERS, timeout=30)
+        r = requests.get(url, headers=HEADERS, timeout=12)
         soup = BeautifulSoup(r.text, "html.parser")
-        # Heurística simple: buscar enlaces dentro de la página
+        
         for a in soup.find_all("a", href=True):
             title = a.get_text(strip=True)
             link = a["href"]
-            if len(title) < 20:
-                continue
+            if len(title) < 20: continue
             
-            # Normalizar URL (absoluta o relativa)
-            from urllib.parse import urljoin
             link = urljoin(url, link)
-
-            if not link.startswith("http"):
-                continue
-
+            if not link.startswith("http"): continue
+            
             if is_oportunidad(title):
                 noticias.append({
-                    "titulo": title,
-                    "url": link,
-                    "fuente": "Personalizada",
-                    "sector": classify_sector(title),
-                    "fecha": datetime.now().strftime("%Y-%m-%d"),
+                    "titulo": title, "url": link, "fuente": "Personalizada",
+                    "sector": classify_sector(title), "fecha": datetime.now().strftime("%Y-%m-%d")
                 })
         
-        # Deduplicar
-        seen_titles = set()
+        # Deduplicar en memoria
+        seen_urls = set()
         unique_news = []
         for n in noticias:
-            key = n["titulo"][:50].lower()
-            if key not in seen_titles:
-                seen_titles.add(key)
+            if n["url"] not in seen_urls:
+                seen_urls.add(n["url"])
                 unique_news.append(n)
                 
-        print(f"  [OK] Oportunidades encontradas: {len(unique_news)}")
-        return unique_news
+        # Insertar en la Base de Datos
+        inserciones = insert_noticias(unique_news)
+        print(f"  [OK] Analizadas: {len(unique_news)} | Insertadas DB: {inserciones}")
+        return {"total_analizadas": len(unique_news), "nuevas_insertadas": inserciones, "data": unique_news}
     except Exception as e:
         print(f"[URL Personalizada] Error: {e}")
-        return []
+        return {"total_analizadas": 0, "nuevas_insertadas": 0, "data": [], "error": str(e)}
 
 if __name__ == "__main__":
-    results = run_all_scrapers()
-    with open("noticias.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
-    print("Guardado en noticias.json")
+    # Test execution
+    res = run_all_scrapers()
+    print("Test local terminado.")
