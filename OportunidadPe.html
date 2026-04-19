@@ -754,7 +754,8 @@
       <div class="chip" onclick="setFilter('finanzas', this)">💰 Finanzas</div>
     </div>
     <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: auto;">
-      <input type="url" id="custom-url-input" placeholder="Ingresar link (opcional)" style="padding: 0.6rem; border: 1.5px solid var(--gris-light); border-radius: 4px; font-family: var(--font-body); font-size: 0.8rem; width: 200px;">
+      <input type="url" id="custom-url-input" placeholder="Ingresar link (opcional)"
+        style="padding: 0.6rem; border: 1.5px solid var(--gris-light); border-radius: 4px; font-family: var(--font-body); font-size: 0.8rem; width: 200px;">
       <button class="scrape-btn" onclick="realScrape(this)">
         ⚡ Actualizar datos
       </button>
@@ -817,7 +818,7 @@
   </div>
 
   <footer>
-    <strong>OportunidadPe</strong> · Scraping de 9 medios peruanos · Powered by Claude AI<br>
+    <strong>OportunidadPe</strong> · Scraping de 9 medios peruanos · Powered by Gemini AI<br>
     <small>Gestión · El Comercio · Andina · La República · Peru21 · El Peruano · Correo · Ojo · América TV</small>
   </footer>
 
@@ -906,16 +907,16 @@
     async function realScrape(btn) {
       btn.classList.add('loading');
       btn.textContent = '⏳ Scrapeando...';
-      
+
       const customUrl = document.getElementById('custom-url-input').value;
-      
+
       try {
         const response = await fetch('/api/scrape', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: customUrl })
         });
-        
+
         if (response.ok) {
           NOTICIAS = await response.json();
           updateStats();
@@ -934,7 +935,7 @@
       }
     }
 
-    // ─── AI VIA CLAUDE API ───
+    // ─── AI VIA GEMINI API ───
     async function sendAI() {
       const input = document.getElementById('ai-input');
       const btn = document.getElementById('ai-btn');
@@ -949,7 +950,7 @@
 
       const context = NOTICIAS.slice(0, 10).map((n, i) =>
         `${i + 1}. [${n.fuente}] [${n.sector}] ${n.titulo} — ${n.resumen}`
-      ).join('\n');
+      ).join('\\n');
 
       const systemPrompt = `Eres el asistente de OportunidadPe, un radar de oportunidades de negocio en Perú. 
 Tienes acceso a las siguientes noticias de oportunidades detectadas hoy en 9 medios peruanos:
@@ -961,22 +962,29 @@ Da consejos concretos para empresarios y emprendedores peruanos.
 Menciona montos, plazos y entidades cuando sea relevante.`;
 
       try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
+        const apiKey = "API KEY aquí"; // Clave de Gemini
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            system: systemPrompt,
-            messages: [{ role: "user", content: question }]
+            systemInstruction: {
+              parts: [{ text: systemPrompt }]
+            },
+            contents: [{
+              parts: [{ text: question }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 1000
+            }
           })
         });
 
         const data = await response.json();
-        const text = data.content?.find(b => b.type === 'text')?.text || 'No se pudo obtener respuesta.';
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo obtener respuesta.';
         responseDiv.className = 'ai-response';
         responseDiv.textContent = text;
       } catch (e) {
+        console.error(e);
         responseDiv.className = 'ai-response';
         responseDiv.textContent = '❌ Error al conectar con la IA. Verifica tu conexión.';
       }
@@ -1005,7 +1013,7 @@ Menciona montos, plazos y entidades cuando sea relevante.`;
       renderNews(NOTICIAS);
       renderFuentes();
     }
-    
+
     init();
   </script>
 </body>

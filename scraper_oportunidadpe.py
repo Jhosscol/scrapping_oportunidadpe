@@ -328,7 +328,7 @@ def scrape_custom_url(url):
     noticias = []
     print(f"Iniciando scraping de URL personalizada: {url}")
     try:
-        r = requests.get(url, headers=HEADERS, timeout=10)
+        r = requests.get(url, headers=HEADERS, timeout=30)
         soup = BeautifulSoup(r.text, "html.parser")
         # Heurística simple: buscar enlaces dentro de la página
         for a in soup.find_all("a", href=True):
@@ -337,13 +337,9 @@ def scrape_custom_url(url):
             if len(title) < 20:
                 continue
             
-            # Normalizar URL relativa
-            if link.startswith("/"):
-                # extraer dominio base
-                from urllib.parse import urlparse
-                parsed_url = urlparse(url)
-                base_domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
-                link = base_domain + link
+            # Normalizar URL (absoluta o relativa)
+            from urllib.parse import urljoin
+            link = urljoin(url, link)
 
             if not link.startswith("http"):
                 continue
