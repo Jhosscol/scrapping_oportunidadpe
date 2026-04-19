@@ -1,0 +1,18 @@
+# Ignorar variables de entorno e información secreta
+.env
+
+# Base de datos local (¡Es peligroso subir bases con datos a la rama pública y pesa mucho!)
+noticias.db
+noticias.json
+*.sqlite3
+
+# Python generados
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Ambientes virtuales
+venv/
+env/
+.venv/
